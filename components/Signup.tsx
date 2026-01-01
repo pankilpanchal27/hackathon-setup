@@ -20,15 +20,19 @@ const Signup: React.FC<SignupProps> = ({ onNavigateToLogin }) => {
     setLoading(true);
 
     try {
-      // Fix: Use auth.createUserWithEmailAndPassword method to resolve export error
+      // Create user
       const userCredential = await auth.createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
 
       if (user) {
-        // Fix: Use user.updateProfile method instead of modular updateProfile function
-        await user.updateProfile({ displayName: name });
+        // Update profile display name - using compat method
+        try {
+          await user.updateProfile({ displayName: name });
+        } catch (profileError) {
+          console.warn("Could not update display name, but user was created:", profileError);
+        }
 
-        // Store in Firestore - keeping modular syntax as it works for firestore in this environment
+        // Store additional info in Firestore
         await setDoc(doc(db, "users", user.uid), {
           name: name,
           email: email,
@@ -36,9 +40,9 @@ const Signup: React.FC<SignupProps> = ({ onNavigateToLogin }) => {
           role: "hacker"
         });
       }
-
     } catch (err: any) {
-      setError(err.message || "Failed to create account. Email may already be in use.");
+      console.error("Signup error:", err);
+      setError(err.message || "Failed to create account. Please check your connection and details.");
       setLoading(false);
     }
   };

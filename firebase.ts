@@ -14,11 +14,11 @@ const firebaseConfig = {
   measurementId: "G-29XM0W8HNM"
 };
 
-// Initialize Firebase using the compat layer to resolve the 'initializeApp' property error on the default export
+// Initialize Firebase using the compat layer
 const app = firebase.initializeApp(firebaseConfig);
-// Export compat auth to resolve the 'auth' property error and support methods like signInWithEmailAndPassword used in Login/Signup
+// Export compat auth to support methods like signInWithEmailAndPassword used in Login/Signup
 export const auth = firebase.auth();
-// Firestore is used with modular syntax in this project; the compat app instance is compatible with getFirestore
+// Firestore is used with modular syntax
 export const db = getFirestore(app);
 
 export default app;
