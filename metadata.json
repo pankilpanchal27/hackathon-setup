@@ -1,0 +1,5 @@
+{
+  "name": "LDCE Hackathon React Quiz",
+  "description": "An interactive React quiz application featuring a custom LD Engineering College Hackathon theme, dynamic question generation via Gemini, and timed challenges.",
+  "requestFramePermissions": []
+}
