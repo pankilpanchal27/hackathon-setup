@@ -1,10 +1,11 @@
+
 // Import compatibility versions of Firebase to support the namespaced API (v8 style) used in the components
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA6jvyfu3awqwPfstwIP753tZXpDd8zZzo",
+  apiKey: "AIzaSyBdKovzaViBtvxsEu0md2ZZME8bE9do2jg",
   authDomain: "pankil-test-project.firebaseapp.com",
   projectId: "pankil-test-project",
   storageBucket: "pankil-test-project.firebasestorage.app",
