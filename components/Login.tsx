@@ -1,25 +1,32 @@
 
 import React, { useState } from 'react';
-import { User } from '../types';
+import { auth } from '../firebase';
 
 interface LoginProps {
-  onLogin: (user: User) => void;
   onNavigateToSignup: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin, onNavigateToSignup }) => {
+const Login: React.FC<LoginProps> = ({ onNavigateToSignup }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      onLogin({ username: email.split('@')[0], email });
+    setError(null);
+    setLoading(true);
+    try {
+      // Fix: Use auth.signInWithEmailAndPassword method to resolve export error
+      await auth.signInWithEmailAndPassword(email, password);
+    } catch (err: any) {
+      setError(err.message || "Failed to sign in. Please check your credentials.");
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800">
+    <div className="flex flex-col md:flex-row bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 animate-fadeIn">
       {/* Visual Side */}
       <div className="md:w-1/2 p-12 bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-950 flex flex-col justify-between border-r border-slate-800">
         <div>
@@ -45,7 +52,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onNavigateToSignup }) => {
             </div>
           </div>
         </div>
-        <div className="mt-8">
+        <div className="mt-8 hidden md:block">
           <img src="https://picsum.photos/id/180/400/300" alt="Tech" className="rounded-xl opacity-60 grayscale hover:grayscale-0 transition-all duration-500" />
         </div>
       </div>
@@ -57,6 +64,11 @@ const Login: React.FC<LoginProps> = ({ onLogin, onNavigateToSignup }) => {
           <p className="text-slate-400 mb-8">Login to your hackathon account.</p>
           
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/50 text-red-500 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
               <input
@@ -81,9 +93,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, onNavigateToSignup }) => {
             </div>
             <button
               type="submit"
-              className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
+              disabled={loading}
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {loading ? 'Authenticating...' : 'Sign In'}
             </button>
           </form>
           

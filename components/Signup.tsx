@@ -1,26 +1,50 @@
 
 import React, { useState } from 'react';
-import { User } from '../types';
+import { auth, db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 interface SignupProps {
-  onSignup: (user: User) => void;
   onNavigateToLogin: () => void;
 }
 
-const Signup: React.FC<SignupProps> = ({ onSignup, onNavigateToLogin }) => {
+const Signup: React.FC<SignupProps> = ({ onNavigateToLogin }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && email && password) {
-      onSignup({ username: name, email });
+    setError(null);
+    setLoading(true);
+
+    try {
+      // Fix: Use auth.createUserWithEmailAndPassword method to resolve export error
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+
+      if (user) {
+        // Fix: Use user.updateProfile method instead of modular updateProfile function
+        await user.updateProfile({ displayName: name });
+
+        // Store in Firestore - keeping modular syntax as it works for firestore in this environment
+        await setDoc(doc(db, "users", user.uid), {
+          name: name,
+          email: email,
+          createdAt: new Date().toISOString(),
+          role: "hacker"
+        });
+      }
+
+    } catch (err: any) {
+      setError(err.message || "Failed to create account. Email may already be in use.");
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800">
+    <div className="flex flex-col md:flex-row bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 animate-fadeIn">
       {/* Form Side */}
       <div className="md:w-1/2 p-12 bg-slate-900 order-2 md:order-1">
         <div className="max-w-sm mx-auto">
@@ -28,6 +52,11 @@ const Signup: React.FC<SignupProps> = ({ onSignup, onNavigateToLogin }) => {
           <p className="text-slate-400 mb-8">Start your hackathon journey today.</p>
           
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/50 text-red-500 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
               <input
@@ -63,9 +92,10 @@ const Signup: React.FC<SignupProps> = ({ onSignup, onNavigateToLogin }) => {
             </div>
             <button
               type="submit"
-              className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98]"
+              disabled={loading}
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/25 active:scale-[0.98] disabled:opacity-50"
             >
-              Create Account
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
           
@@ -89,19 +119,13 @@ const Signup: React.FC<SignupProps> = ({ onSignup, onNavigateToLogin }) => {
             Join hundreds of developers in our flagship event.
           </p>
         </div>
-        <div className="mt-8">
+        <div className="mt-8 hidden md:block">
            <div className="grid grid-cols-2 gap-4">
-              <div className="h-32 bg-slate-800 rounded-xl overflow-hidden animate-pulse">
+              <div className="h-32 bg-slate-800 rounded-xl overflow-hidden">
                 <img src="https://picsum.photos/id/0/200/200" className="object-cover w-full h-full opacity-40" alt="team" />
               </div>
               <div className="h-32 bg-indigo-900/40 rounded-xl overflow-hidden relative flex items-center justify-center border border-indigo-500/30">
                 <span className="text-3xl font-bold text-indigo-400">#LDCE</span>
-              </div>
-              <div className="h-32 bg-slate-800 rounded-xl overflow-hidden">
-                <img src="https://picsum.photos/id/10/200/200" className="object-cover w-full h-full opacity-40" alt="code" />
-              </div>
-              <div className="h-32 bg-slate-800 rounded-xl overflow-hidden flex items-center justify-center">
-                <svg className="w-12 h-12 text-slate-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 10.935v2.131c0 .384-.061.767-.181 1.135a4.444 4.444 0 01-1.258 1.94 4.5 4.5 0 01-2.023 1.056c-.394.1-.798.151-1.203.15h-10.33a4.5 4.5 0 01-4.116-2.698 4.432 4.432 0 01-.384-1.848v-1.866c0-.443.067-.885.197-1.307a4.484 4.484 0 011.378-2.22c.621-.527 1.348-.908 2.135-1.119.345-.094.7-.14 1.056-.14h10.33c1.238.001 2.425.492 3.298 1.365.873.873 1.365 2.061 1.365 3.3zM16.5 7.5h-9a1.5 1.5 0 00-1.5 1.5v6a1.5 1.5 0 001.5 1.5h9a1.5 1.5 0 001.5-1.5v-6a1.5 1.5 0 00-1.5-1.5z"/></svg>
               </div>
            </div>
         </div>

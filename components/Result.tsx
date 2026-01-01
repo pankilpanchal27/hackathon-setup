@@ -1,5 +1,7 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { db, auth } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface ResultProps {
   score: number;
@@ -11,6 +13,28 @@ interface ResultProps {
 const Result: React.FC<ResultProps> = ({ score, total, onRestart, onLogout }) => {
   const percentage = Math.round((score / total) * 100);
   
+  useEffect(() => {
+    const saveScore = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          await addDoc(collection(db, "quiz_results"), {
+            userId: user.uid,
+            userName: user.displayName,
+            score: score,
+            total: total,
+            percentage: percentage,
+            timestamp: serverTimestamp()
+          });
+          console.log("Score saved to database");
+        } catch (error) {
+          console.error("Error saving score:", error);
+        }
+      }
+    };
+    saveScore();
+  }, [score, total, percentage]);
+
   let message = "Excellent! You're ready for the hackathon.";
   let colorClass = "text-emerald-400";
   let bgClass = "bg-emerald-500/20";
@@ -26,7 +50,7 @@ const Result: React.FC<ResultProps> = ({ score, total, onRestart, onLogout }) =>
   }
 
   return (
-    <div className="max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-10 text-center shadow-2xl relative overflow-hidden">
+    <div className="max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-10 text-center shadow-2xl relative overflow-hidden animate-fadeIn">
       {/* Decorative background circle */}
       <div className={`absolute -top-10 -right-10 w-40 h-40 ${bgClass} rounded-full blur-3xl opacity-30`}></div>
       

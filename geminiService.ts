@@ -7,8 +7,9 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const fetchReactQuestions = async (): Promise<QuizQuestion[]> => {
   try {
+    // Use gemini-3-pro-preview for complex reasoning/coding task as per guidelines
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3-pro-preview",
       contents: "Generate 5 challenging React JS interview questions for a hackathon quiz.",
       config: {
         responseMimeType: "application/json",
@@ -31,8 +32,9 @@ export const fetchReactQuestions = async (): Promise<QuizQuestion[]> => {
       },
     });
 
-    const jsonStr = response.text?.trim() || "[]";
-    return JSON.parse(jsonStr);
+    // Directly access text property as per guidelines (it's a getter, not a function)
+    const jsonStr = (response.text || "").trim();
+    return JSON.parse(jsonStr || "[]");
   } catch (error) {
     console.error("Error fetching questions:", error);
     // Fallback static questions if API fails
