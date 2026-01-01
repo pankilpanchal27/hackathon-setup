@@ -1,6 +1,6 @@
-
-import firebase from 'firebase/app';
-import 'firebase/auth';
+// Import compatibility versions of Firebase to support the namespaced API (v8 style) used in the components
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -13,10 +13,11 @@ const firebaseConfig = {
   measurementId: "G-29XM0W8HNM"
 };
 
-// Initialize Firebase using namespaced style to fix 'initializeApp' export error
+// Initialize Firebase using the compat layer to resolve the 'initializeApp' property error on the default export
 const app = firebase.initializeApp(firebaseConfig);
-// Use namespaced auth to fix 'getAuth' export error
+// Export compat auth to resolve the 'auth' property error and support methods like signInWithEmailAndPassword used in Login/Signup
 export const auth = firebase.auth();
-// Firestore seems to work with modular imports in this environment, so keeping it
+// Firestore is used with modular syntax in this project; the compat app instance is compatible with getFirestore
 export const db = getFirestore(app);
+
 export default app;
